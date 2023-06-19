@@ -20,6 +20,7 @@ def check_portrait_image(image_path):
     
     # Convert the image to grayscale
     try:
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     except NameError:
         print("Image is not in correct format")
@@ -27,22 +28,43 @@ def check_portrait_image(image_path):
     except cv2.error:
         print("Image is not in correct format")
         return
+    # Define the lower and upper bounds for white color in HSV
+    lower_white = np.array([0, 0, 200], dtype=np.uint8)
+    upper_white = np.array([180, 25, 255], dtype=np.uint8)
 
-    # Calculate the mean value of the grayscale image
-    mean_value = np.mean(gray)
-    print(mean_value)
-    # Define a threshold value for white background
-    threshold = 150  # Adjust this value based on your requirements
+    # Create a mask for white color
+    mask = cv2.inRange(hsv, lower_white, upper_white)
 
-    # Check if the mean value is above the threshold
-    if mean_value >= threshold:
+    # Calculate the percentage of white pixels in the mask
+    total_pixels = mask.size
+    white_pixel_count = cv2.countNonZero(mask)
+    white_percentage = (white_pixel_count / total_pixels) * 100
+
+    # Define a threshold percentage for white background
+    threshold_percentage = 100  # Adjust this value based on your requirements
+
+    # Check if the white percentage is above the threshold
+    if white_percentage >= threshold_percentage:
         print("The background is white.")
         cv2.putText(image, 'The background is white.', (0,20), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
-        
     else:
-        print("The background is not white.") 
+        print("The background is not white.")
         cv2.putText(image, 'The background is not white.', (0,20), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
-        # return
+    # # Calculate the mean value of the grayscale image
+    # mean_value = np.mean(gray)
+    # print(mean_value)
+    # # Define a threshold value for white background
+    # threshold = 80  # Adjust this value based on your requirements
+
+    # # Check if the mean value is above the threshold
+    # if mean_value >= threshold:
+    #     print("The background is white.")
+    #     cv2.putText(image, 'The background is white.', (0,20), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+        
+    # else:
+    #     print("The background is not white.") 
+    #     cv2.putText(image, 'The background is not white.', (0,20), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+    #     # return
 
     # #Detect white background in then image
     # # Set the threshold for white background detection
@@ -85,6 +107,7 @@ def check_portrait_image(image_path):
         eyes = eye_cascade.detectMultiScale(face_roi_gray)
 
         # Check if no eyes are detected within the face region
+        print("Number of eyes detected", len(eyes))
         if len(eyes) ==2:
             print("Eyes are front facing")
             cv2.putText(image, 'Eyes Detected', (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
